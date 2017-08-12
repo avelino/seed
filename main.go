@@ -16,6 +16,32 @@ import (
 	"github.com/urfave/cli"
 )
 
+type SeedConfig struct {
+	Package seedPackage
+	Server  seedServer
+}
+type seedPackage struct {
+	Organization  string
+	Name          string
+	Version       string
+	Authors       []string
+	Description   string
+	Homepage      string
+	Documentation string
+	Repository    string
+	Readme        string
+	Keywords      []string
+	Categories    []string
+	License       string
+	Exclude       []string
+	Include       []string
+	Dependencies  []string
+}
+type seedServer struct {
+	Protocol string
+	Port     int
+}
+
 func copyFile(src, dst string) (err error) {
 	in, err := os.Open(src)
 	if err != nil {
