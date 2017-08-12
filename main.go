@@ -329,7 +329,34 @@ func main() {
 
 				repo := strings.Split(c.Args().Get(0), "@")
 				if strings.Contains(repo[0], "goseed.io/") {
-					fmt.Println("Not implemented!")
+					version := "latest"
+					if len(repo) > 1 {
+						version = repo[1]
+					}
+					names := strings.Split(repo[0], "/")
+					PackageName := fmt.Sprintf("%s-%s-%s", names[1], names[2], version)
+
+					zipPath := fmt.Sprintf("%s/%s.zip", SeedCachePath, PackageName)
+					repoFolder := fmt.Sprintf("%s/src/%s/%s", os.Getenv("GOPATH"), names[0], names[1])
+
+					_, err = os.Stat(repoFolder)
+					if err != nil {
+						err = os.MkdirAll(repoFolder, os.ModePerm)
+						if err != nil {
+							return
+						}
+					}
+
+					err = archiver.Zip.Open(zipPath, repoFolder)
+					if err != nil {
+						return
+					}
+
+					fullPath := fmt.Sprintf("%s/%s", repoFolder, names[2])
+					err = os.Rename(fmt.Sprintf("%s/%s", repoFolder, PackageName), fullPath)
+					if err != nil {
+						return
+					}
 					return
 				}
 
