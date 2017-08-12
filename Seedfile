@@ -1,10 +1,31 @@
-bufio
-fmt
-github.com/urfave/cli
-io
-io/ioutil
-os
-os/exec
-path/filepath
-sort
-strings
+[package]
+organization = "goseed"
+name = "seed"
+version = "0.1"
+authors = ["Frist Last Name <mail@goseed.io>"]
+description = "Package Manager"
+homepage = "https://goseed.io/"
+documentation = "https://docs.goseed.io/"
+repository = "https://github.com/goseed/seed"
+readme = "README.md"
+keywords = ["package", "manager"]
+categories = ["command-line-utilities", "network-programming"]
+license = "MIT"
+exclude = [
+	"assets/*",
+	"packageX/**/*.go",
+	"vendor/*",
+]
+include = [
+	"**/*.go",
+	"Seed.toml",
+]
+
+dependencies = [
+	     "goseed.io/goseed/seed@0.1",
+	     "github.com/avelino/slugify@master",
+]
+
+[server]
+protocol = "http"
+port = 8080
