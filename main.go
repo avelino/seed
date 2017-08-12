@@ -22,6 +22,12 @@ var (
 	SeedPath      = fmt.Sprintf("%s/.seed", os.Getenv("HOME"))
 	SeedCachePath = fmt.Sprintf("%s/cache", SeedPath)
 	SeedTempPath  = fmt.Sprintf("%s/tmp", SeedPath)
+	ExtInclude    = []string{
+		".go",
+		".md",
+		".rst",
+		"Seedfile",
+	}
 )
 
 type SeedConfig struct {
@@ -136,10 +142,17 @@ func copyDir(src string, dst string) (err error) {
 				return
 			}
 		} else {
-			// not exist .go on file name continue
-			if !strings.Contains(entry.Name(), ".go") {
+			containExt := false
+			for _, ext := range ExtInclude {
+				// not exist .go on file name continue
+				if strings.Contains(entry.Name(), ext) {
+					containExt = true
+				}
+			}
+			if !containExt {
 				continue
 			}
+
 			// Skip symlinks.
 			if entry.Mode()&os.ModeSymlink != 0 {
 				continue
