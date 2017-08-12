@@ -2,6 +2,8 @@
 
 Library packaging and distribution for Golang
 
+![Seed Package Logo](/assets/seed.png)
+
 **status: WIP**
 
 ## Install
