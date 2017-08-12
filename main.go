@@ -1,7 +1,6 @@
 package main
 
 import (
-	"archive/tar"
 	"bufio"
 	"errors"
 	"fmt"
@@ -13,7 +12,16 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/BurntSushi/toml"
+	"github.com/mholt/archiver"
+	"github.com/nuveo/log"
 	"github.com/urfave/cli"
+)
+
+var (
+	SeedPath      = fmt.Sprintf("%s/.seed", os.Getenv("HOME"))
+	SeedCachePath = fmt.Sprintf("%s/cache", SeedPath)
+	SeedTempPath  = fmt.Sprintf("%s/tmp", SeedPath)
 )
 
 type SeedConfig struct {
@@ -146,31 +154,6 @@ func copyDir(src string, dst string) (err error) {
 	return
 }
 
-func gZipAddFile(tw *tar.Writer, path string) error {
-	file, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-	if stat, err := file.Stat(); err == nil {
-		// now lets create the header as needed for this file within the tarball
-		header := new(tar.Header)
-		header.Name = path
-		header.Size = stat.Size()
-		header.Mode = int64(stat.Mode())
-		header.ModTime = stat.ModTime()
-		// write the header to the tarball archive
-		if err := tw.WriteHeader(header); err != nil {
-			return err
-		}
-		// copy the file data to the tarball
-		if _, err := io.Copy(tw, file); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func getRepo(repo, branch, seedFolder string) (err error) {
 	ProjectFolder, _ := os.Getwd()
 
@@ -212,6 +195,11 @@ func main() {
 	_, err := exec.LookPath("go")
 	if err != nil {
 		panic(err)
+	}
+
+	var config SeedConfig
+	if _, err = toml.DecodeFile("Seedfile", &config); err != nil {
+		log.Warningln("Seedfile not found!")
 	}
 
 	app := cli.NewApp()
@@ -334,10 +322,39 @@ func main() {
 				return
 			},
 		},
+		{
+			Name:    "push",
+			Aliases: []string{"p"},
+			Usage:   "The distutils command upload pushes the distribution files to Seed Index Server",
+			Action: func(c *cli.Context) (err error) {
+				PackageName := config.Package.PackageFullName()
+				PackagePach := fmt.Sprintf("%s/%s", SeedTempPath, PackageName)
+
+				_ = copyDir(".", PackagePach)
+				err = archiver.Zip.Make(fmt.Sprintf("%s/%s.zip", SeedCachePath, PackageName), []string{PackagePach})
+				if err != nil {
+					return
+				}
+				err = os.RemoveAll(PackagePach)
+				if err != nil {
+					return
+				}
+				return
+			},
+		},
 	}
 
 	sort.Sort(cli.FlagsByName(app.Flags))
 	sort.Sort(cli.CommandsByName(app.Commands))
 
 	app.Run(os.Args)
+}
+
+func (p seedPackage) PackageFullName() (name string) {
+	name = "avelino"
+	if p.Organization != "" {
+		name = p.Organization
+	}
+	name = fmt.Sprintf("%s-%s-%s", name, p.Name, p.Version)
+	return
 }
