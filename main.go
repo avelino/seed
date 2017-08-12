@@ -1,7 +1,9 @@
 package main
 
 import (
+	"archive/tar"
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -115,7 +117,68 @@ func copyDir(src string, dst string) (err error) {
 			}
 		}
 	}
+	return
+}
 
+func gZipAddFile(tw *tar.Writer, path string) error {
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	if stat, err := file.Stat(); err == nil {
+		// now lets create the header as needed for this file within the tarball
+		header := new(tar.Header)
+		header.Name = path
+		header.Size = stat.Size()
+		header.Mode = int64(stat.Mode())
+		header.ModTime = stat.ModTime()
+		// write the header to the tarball archive
+		if err := tw.WriteHeader(header); err != nil {
+			return err
+		}
+		// copy the file data to the tarball
+		if _, err := io.Copy(tw, file); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func getRepo(repo, branch, seedFolder string) (err error) {
+	ProjectFolder, _ := os.Getwd()
+
+	fmt.Println("get: ", repo, " branch/commit: ", branch)
+
+	args := []string{"get", "-u", repo}
+	_ = exec.Command("go", args...).Run()
+
+	repoFolder := fmt.Sprintf("%s/src/%s", os.Getenv("GOPATH"), repo)
+	if branch != "master" {
+		if err = os.Chdir(repoFolder); err != nil {
+			err = errors.New(fmt.Sprintf("Folder not exist!: %s", err))
+			return
+		}
+
+		err = exec.Command("git", []string{"checkout", branch}...).Run()
+		if err != nil {
+			return
+		}
+	}
+
+	SeedPath := seedFolder
+	if seedFolder == "vendor" {
+		SeedPath = fmt.Sprintf("%s/%s", ProjectFolder, seedFolder)
+	}
+
+	// create SeedPath dir
+	err = os.MkdirAll(SeedPath, os.ModePerm)
+	if err != nil {
+		return
+	}
+	// sync folder
+	dstPath := fmt.Sprintf("%s/%s", SeedPath, repo)
+	err = copyDir(repoFolder, dstPath)
 	return
 }
 
@@ -199,7 +262,7 @@ func main() {
 			Name:    "freeze",
 			Aliases: []string{"f"},
 			Usage:   "",
-			Action: func(c *cli.Context) error {
+			Action: func(c *cli.Context) (err error) {
 				args := []string{"list", "-f", `'{{ join .Imports "\n" }}'`}
 				outPut, err := exec.Command("go", args...).Output()
 				if err != nil {
@@ -213,7 +276,36 @@ func main() {
 						fmt.Println(p)
 					}
 				}
-				return nil
+				return
+			},
+		},
+		{
+			Name:    "get",
+			Aliases: []string{"g"},
+			Usage:   "Fetch from and integrate with remote repository to GOPATH or vendor (if exist folder vendor this path)",
+			Action: func(c *cli.Context) (err error) {
+				if c.NArg() == 0 {
+					fmt.Println("Pls set repository!")
+					return
+				}
+
+				repo := strings.Split(c.Args().Get(0), "@")
+				if strings.Contains(repo[0], "goseed.io/") {
+					fmt.Println("Not implemented!")
+					return
+				}
+
+				seedFolder := "gopath"
+				if _, err = os.Stat("./vendor"); err == nil {
+					seedFolder = "vendor"
+				}
+
+				branch := "master"
+				if len(repo) == 2 {
+					branch = repo[1]
+				}
+				getRepo(repo[0], branch, seedFolder)
+				return
 			},
 		},
 	}
