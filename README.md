@@ -19,12 +19,12 @@ Library packaging and distribution for Golang
 | command | alias | parameters | description |
 |---|---|---|---|
 | search | s | - | Find remote Seed to an Index Server |
-| register | r | -f Seed.toml | The distutils command register is used to submit your distribution’s meta-data to an Seed Index Server |
-| push | p | -force / -f Seed.toml | The distutils command upload pushes the distribution files to Seed Index Server |
-| get | g | -u / -f Seed.toml / -to [`gopath`, `vendor`] | Fetch from and integrate with remote repository to **GOPATH** or **vendor** (if exist folder vendor this path) |
-| install | i | -u / -f Seed.toml (requires file) | Installs all packages from the toml file |
-| list | l | -f Seed.toml | Shows your locally installed to **GOPATH** or **vendor** (if exist folder vendor this path) |
-| server | - | -f Seed.toml | Shows your locally installed to **GOPATH** or **vendor** (if exist folder vendor this path) |
+| register | r | -f Seedfile | The distutils command register is used to submit your distribution’s meta-data to an Seed Index Server |
+| push | p | -force / -f Seedfile | The distutils command upload pushes the distribution files to Seed Index Server |
+| get | g | -u / -f Seedfile / -to [`gopath`, `vendor`] | Fetch from and integrate with remote repository to **GOPATH** or **vendor** (if exist folder vendor this path) |
+| install | i | -u / -f Seedfile (requires file) | Installs all packages from the Seedfile |
+| list | l | -f Seedfile | Shows your locally installed to **GOPATH** or **vendor** (if exist folder vendor this path) |
+| server | - | -f Seedfile | Shows your locally installed to **GOPATH** or **vendor** (if exist folder vendor this path) |
 
 
 ## Config
@@ -51,7 +51,7 @@ token = "my key"
 
 ## Package
 
-### Seed.toml
+### Seedfile
 
 ```
 [package]
@@ -74,7 +74,7 @@ exclude = [
 ]
 include = [
 	"**/*.go",
-	"Seed.toml",
+	"Seedfile",
 ]
 
 dependencies = [
