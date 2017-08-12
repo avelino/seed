@@ -20,10 +20,11 @@ Library packaging and distribution for Golang
 |---|---|---|---|
 | search | s | - | Find remote Seed to an Index Server |
 | register | r | -f Seed.toml | The distutils command register is used to submit your distribution’s meta-data to an Seed Index Server |
-| push | p | -f Seed.toml | The distutils command upload pushes the distribution files to Seed Index Server |
+| push | p | -force / -f Seed.toml | The distutils command upload pushes the distribution files to Seed Index Server |
 | get | g | -u / -f Seed.toml / -to [`gopath`, `vendor`] | Fetch from and integrate with remote repository to **GOPATH** or **vendor** (if exist folder vendor this path) |
 | install | i | -u / -f Seed.toml (requires file) | Installs all packages from the toml file |
 | list | l | -f Seed.toml | Shows your locally installed to **GOPATH** or **vendor** (if exist folder vendor this path) |
+| server | - | -f Seed.toml | Shows your locally installed to **GOPATH** or **vendor** (if exist folder vendor this path) |
 
 
 ## Config
@@ -54,6 +55,7 @@ token = "my key"
 
 ```
 [package]
+organization = "goseed"
 name = "seed"
 version = "0.1"
 authors = ["Frist Last Name <mail@goseed.io>"]
@@ -66,16 +68,21 @@ keywords = ["package", "manager"]
 categories = ["command-line-utilities", "network-programming"]
 license = "MIT"
 exclude = [
-    "assets/*",
-    "packageX/**/*.go",
+	"assets/*",
+	"packageX/**/*.go",
 	"vendor/*",
 ]
 include = [
-    "**/*.go",
-    "Seed.toml",
+	"**/*.go",
+	"Seed.toml",
 ]
 
-[dependencies]
-package_name = "0.1"
-package_name2 = { git = "https://github.com/username/repo", branch = "master" }
+dependencies = [
+	     "goseed.io/goseed/seed@0.1",
+	     "github.com/avelino/slugify@master",
+]
+
+[server]
+protocol = "http"
+port = 8080
 ```
