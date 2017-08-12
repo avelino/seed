@@ -57,6 +57,16 @@ type seedServer struct {
 	Port     int
 }
 
+type seedAuth struct {
+	Token string
+}
+
+type seedPush struct {
+	File    string
+	Package seedPackage
+	Auth    seedAuth
+}
+
 func copyFile(src, dst string) (err error) {
 	in, err := os.Open(src)
 	if err != nil {
