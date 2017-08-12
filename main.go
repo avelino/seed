@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
@@ -344,10 +345,30 @@ func main() {
 				PackagePach := fmt.Sprintf("%s/%s", SeedTempPath, PackageName)
 
 				_ = copyDir(".", PackagePach)
-				err = archiver.Zip.Make(fmt.Sprintf("%s/%s.zip", SeedCachePath, PackageName), []string{PackagePach})
+				zipPath := fmt.Sprintf("%s/%s.zip", SeedCachePath, PackageName)
+				err = archiver.Zip.Make(zipPath, []string{PackagePach})
 				if err != nil {
 					return
 				}
+
+				zipFile, err := os.Open(zipPath)
+				if err != nil {
+					return
+				}
+				defer zipFile.Close()
+				zipInfo, _ := zipFile.Stat()
+				zipSize := zipInfo.Size()
+				buf := make([]byte, zipSize)
+				zipReader := bufio.NewReader(zipFile)
+				zipReader.Read(buf)
+				zipBase64Str := base64.StdEncoding.EncodeToString(buf)
+				log.Println(zipBase64Str)
+
+				sPush := seedPush{
+					File: zipBase64Str,
+				}
+				fmt.Printf("%#v", sPush)
+
 				err = os.RemoveAll(PackagePach)
 				if err != nil {
 					return
