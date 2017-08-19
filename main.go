@@ -313,14 +313,10 @@ func main() {
 			Aliases: []string{"f"},
 			Usage:   "",
 			Action: func(c *cli.Context) (err error) {
-				args := []string{"list", "-f", `'{{ join .Imports "\n" }}'`}
-				outPut, err := exec.Command("go", args...).Output()
+				packages, err := listDependencies("")
 				if err != nil {
-					fmt.Println(err)
+					return
 				}
-
-				clear := strings.Replace(string(outPut), `'`, "", -1)
-				packages := strings.Split(clear, "\n")
 				for _, p := range packages {
 					if p != "" {
 						fmt.Println(p)
