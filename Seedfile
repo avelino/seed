@@ -23,7 +23,6 @@ include = [
 
 dependencies = [
 	     "goseed.io/goseed/seed@0.1",
-	     "github.com/avelino/slugify@master",
 	     "github.com/urfave/cli",
 ]
 
