@@ -316,7 +316,7 @@ func main() {
 		{
 			Name:    "list",
 			Aliases: []string{"l"},
-			Usage:   "",
+			Usage:   "Shows your locally installed this or specific package",
 			Action: func(c *cli.Context) (err error) {
 				repo := c.Args().Get(0)
 				packages, err := listDependencies("")
