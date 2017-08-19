@@ -22,8 +22,10 @@ import (
 var (
 	SeedPath      = fmt.Sprintf("%s/.seed", os.Getenv("HOME"))
 	SeedCachePath = fmt.Sprintf("%s/cache", SeedPath)
-	SeedTempPath  = fmt.Sprintf("%s/tmp", SeedPath)
-	ExtInclude    = []string{
+
+	SeedTempPath = fmt.Sprintf("%s/tmp", SeedPath)
+	GetMsgLog    = "get: %s@%s"
+	ExtInclude   = []string{
 		".go",
 		".md",
 		".rst",
@@ -209,10 +211,13 @@ func getBySeed(repo, version, seedFolder string) (err error) {
 	return
 }
 
-func getRepo(repo, branch, seedFolder string) (err error) {
+func getRepo(repo, branch, seedFolder string, logLevel int) (err error) {
 	ProjectFolder, _ := os.Getwd()
-
-	fmt.Println("get: ", repo, " branch/commit: ", branch)
+	msgLog := fmt.Sprintf(GetMsgLog, repo, branch)
+	if logLevel > 1 {
+		msgLog = fmt.Sprintf("\t%s", msgLog)
+	}
+	log.Println(msgLog)
 
 	args := []string{"get", "-u", repo}
 	_ = exec.Command("go", args...).Run()
@@ -258,8 +263,10 @@ func listDependencies(p string) (packages []string, err error) {
 	clear := strings.Replace(string(outPut), `'`, "", -1)
 	allPackage := strings.Split(clear, "\n")
 	for _, v := range allPackage {
-		if !strings.Contains(v, "vendor/") {
-			packages = append(packages, v)
+		if len(strings.Split(v, "/")) >= 3 {
+			if !strings.Contains(v, "vendor/") {
+				packages = append(packages, v)
+			}
 		}
 	}
 	return
@@ -308,7 +315,7 @@ func main() {
 						err = getBySeed(repo[0], branch, SeedFolder)
 						continue
 					}
-					getRepo(repo[0], branch, SeedFolder)
+					getRepo(repo[0], branch, SeedFolder, 1)
 				}
 				return nil
 			},
@@ -361,10 +368,26 @@ func main() {
 					}
 
 					err = getBySeed(repo[0], branch, seedFolder)
-					return
+				} else {
+					getRepo(repo[0], branch, seedFolder, 1)
 				}
 
-				getRepo(repo[0], branch, seedFolder)
+				packages, err := listDependencies(repo[0])
+				if err != nil {
+					return
+				}
+				for _, p := range packages {
+					if p != "" {
+						if strings.Contains(p, "goseed.io/") {
+							if branch == "master" {
+								branch = "latest"
+							}
+							err = getBySeed(repo[0], branch, seedFolder)
+						} else {
+							getRepo(p, "master", seedFolder, 2)
+						}
+					}
+				}
 				return
 			},
 		},
