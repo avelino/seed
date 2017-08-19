@@ -246,6 +246,20 @@ func getRepo(repo, branch, seedFolder string) (err error) {
 	return
 }
 
+func listDependencies(p string) (packages []string, err error) {
+	args := []string{"list", "-f", `'{{ join .Imports "\n" }}'`}
+	if p != "" {
+		args = append(args, p)
+	}
+	outPut, err := exec.Command("go", args...).Output()
+	if err != nil {
+		return
+	}
+	clear := strings.Replace(string(outPut), `'`, "", -1)
+	packages = strings.Split(clear, "\n")
+	return
+}
+
 func main() {
 	_, err := exec.LookPath("go")
 	if err != nil {
