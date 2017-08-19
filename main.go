@@ -314,8 +314,8 @@ func main() {
 			},
 		},
 		{
-			Name:    "freeze",
-			Aliases: []string{"f"},
+			Name:    "list",
+			Aliases: []string{"l"},
 			Usage:   "",
 			Action: func(c *cli.Context) (err error) {
 				repo := c.Args().Get(0)
