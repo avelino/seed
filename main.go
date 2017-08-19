@@ -327,6 +327,11 @@ func main() {
 					return
 				}
 
+				seedFolder := "gopath"
+				if _, err = os.Stat("./vendor"); err == nil {
+					seedFolder = "vendor"
+				}
+
 				repo := strings.Split(c.Args().Get(0), "@")
 				if strings.Contains(repo[0], "goseed.io/") {
 					version := "latest"
@@ -338,6 +343,10 @@ func main() {
 
 					zipPath := fmt.Sprintf("%s/%s.zip", SeedCachePath, PackageName)
 					repoFolder := fmt.Sprintf("%s/src/%s/%s", os.Getenv("GOPATH"), names[0], names[1])
+					if seedFolder == "vendor" {
+						projectFolder, _ := os.Getwd()
+						repoFolder = fmt.Sprintf("%s/vendor/%s/%s", projectFolder, names[0], names[1])
+					}
 
 					_, err = os.Stat(repoFolder)
 					if err != nil {
@@ -358,11 +367,6 @@ func main() {
 						return
 					}
 					return
-				}
-
-				seedFolder := "gopath"
-				if _, err = os.Stat("./vendor"); err == nil {
-					seedFolder = "vendor"
 				}
 
 				branch := "master"
