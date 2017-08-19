@@ -182,6 +182,8 @@ func getBySeed(repo, version, seedFolder string) (err error) {
 	names := strings.Split(repo, "/")
 	PackageName := fmt.Sprintf("%s-%s-%s", names[1], names[2], version)
 
+	fmt.Println("get: ", repo, " branch/commit: ", version)
+
 	zipPath := fmt.Sprintf("%s/%s.zip", SeedCachePath, PackageName)
 	repoFolder := fmt.Sprintf("%s/src/%s/%s", os.Getenv("GOPATH"), names[0], names[1])
 	if seedFolder == "vendor" {
@@ -265,62 +267,29 @@ func main() {
 			Usage:   "Install packages",
 			Flags: []cli.Flag{
 				cli.StringFlag{
-					Name:  "file, f",
-					Value: "Seedfile",
-					Usage: "Install from the given Seeds file. This option can be used multiple times",
-				},
-				cli.StringFlag{
 					Name:  "folder, dir, d",
 					Value: "vendor",
 					Usage: "Install packages list by Seedfile on seed (or vendor) folder.",
 				},
 			},
 			Action: func(c *cli.Context) error {
-				ProjectFolder, _ := os.Getwd()
-				SeedFile := c.String("file")
 				SeedFolder := c.String("folder")
 
-				file, err := os.Open(SeedFile)
-				defer file.Close()
-				if err != nil {
-					return err
-				}
-
-				scanner := bufio.NewScanner(file)
-				scanner.Split(bufio.ScanLines)
-				for scanner.Scan() {
-					repo := strings.Split(scanner.Text(), "@")
+				for _, dependence := range config.Package.Dependencies {
+					repo := strings.Split(dependence, "@")
 					branch := "master"
 					if len(repo) == 2 {
 						branch = repo[1]
 					}
-					fmt.Println("get: ", repo[0], " branch/commit: ", branch)
 
-					args := []string{"get", "-u", repo[0]}
-					_ = exec.Command("go", args...).Run()
-
-					repoFolder := fmt.Sprintf("%s/src/%s", os.Getenv("GOPATH"), repo[0])
-					if branch != "master" {
-						if err := os.Chdir(repoFolder); err != nil {
-							fmt.Println("folder not exist!")
+					if strings.Contains(repo[0], "goseed.io/") {
+						if branch == "master" {
+							branch = "latest"
 						}
-
-						err := exec.Command("git", []string{"checkout", branch}...).Run()
-						if err != nil {
-							fmt.Println(err)
-						}
+						err = getBySeed(repo[0], branch, SeedFolder)
+						continue
 					}
-
-					SeedPath := SeedFolder
-					if SeedFolder == "vendor" {
-						SeedPath = fmt.Sprintf("%s/%s", ProjectFolder, SeedFolder)
-					}
-					// create SeedPath dir
-					_ = os.MkdirAll(SeedPath, os.ModePerm)
-					// sync folder
-					dstPath := fmt.Sprintf("%s/%s", SeedPath, repo[0])
-					_ = copyDir(repoFolder, dstPath)
-
+					getRepo(repo[0], branch, SeedFolder)
 				}
 				return nil
 			},
