@@ -35,6 +35,7 @@ File: **~/.seedrc**
 
 ```
 [seed]
+path = $HOME/.seed
 verbose = false
 sources = [
 	"https://packages.goseed.io/",
