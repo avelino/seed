@@ -313,7 +313,11 @@ func main() {
 			Aliases: []string{"f"},
 			Usage:   "",
 			Action: func(c *cli.Context) (err error) {
+				repo := c.Args().Get(0)
 				packages, err := listDependencies("")
+				if repo != "" {
+					packages, err = listDependencies(repo)
+				}
 				if err != nil {
 					return
 				}
