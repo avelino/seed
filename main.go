@@ -256,7 +256,12 @@ func listDependencies(p string) (packages []string, err error) {
 		return
 	}
 	clear := strings.Replace(string(outPut), `'`, "", -1)
-	packages = strings.Split(clear, "\n")
+	allPackage := strings.Split(clear, "\n")
+	for _, v := range allPackage {
+		if !strings.Contains(v, "vendor/") {
+			packages = append(packages, v)
+		}
+	}
 	return
 }
 
