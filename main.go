@@ -215,7 +215,11 @@ func getRepo(repo, branch, seedFolder string, logLevel int) (err error) {
 	ProjectFolder, _ := os.Getwd()
 	msgLog := fmt.Sprintf(GetMsgLog, repo, branch)
 	if logLevel > 1 {
-		msgLog = fmt.Sprintf("\t%s", msgLog)
+		msgIdent := ""
+		for i := 1; i <= 10; i++ {
+			msgIdent += " "
+		}
+		msgLog = fmt.Sprintf("%s%s", msgIdent, msgLog)
 	}
 	log.Println(msgLog)
 
