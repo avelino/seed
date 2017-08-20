@@ -331,7 +331,7 @@ func main() {
 					Usage: "Install packages list by Seedfile on seed (or vendor) folder.",
 				},
 			},
-			Action: func(c *cli.Context) error {
+			Action: func(c *cli.Context) (err error) {
 				SeedFolder := c.String("folder")
 
 				for _, dependence := range config.Package.Dependencies {
@@ -341,16 +341,9 @@ func main() {
 						branch = repo[1]
 					}
 
-					if strings.Contains(repo[0], "goseed.io/") {
-						if branch == "master" {
-							branch = "latest"
-						}
-						err = getBySeed(repo[0], branch, SeedFolder)
-						continue
-					}
-					getRepo(repo[0], branch, SeedFolder, 1)
+					err = recursiveRepo(repo[0], branch, SeedFolder, 1)
 				}
-				return nil
+				return
 			},
 		},
 		{
