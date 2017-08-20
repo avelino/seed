@@ -395,31 +395,9 @@ func main() {
 					branch = repo[1]
 				}
 
-				if strings.Contains(repo[0], "goseed.io/") {
-					if branch == "master" {
-						branch = "latest"
-					}
-
-					err = getBySeed(repo[0], branch, seedFolder)
-				} else {
-					getRepo(repo[0], branch, seedFolder, 1)
-				}
-
-				packages, err := listDependencies(repo[0])
+				err = recursiveRepo(repo[0], branch, seedFolder, 1)
 				if err != nil {
 					return
-				}
-				for _, p := range packages {
-					if p != "" {
-						if strings.Contains(p, "goseed.io/") {
-							if branch == "master" {
-								branch = "latest"
-							}
-							err = getBySeed(repo[0], branch, seedFolder)
-						} else {
-							getRepo(p, "master", seedFolder, 2)
-						}
-					}
 				}
 				return
 			},
