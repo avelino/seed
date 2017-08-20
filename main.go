@@ -251,6 +251,35 @@ func getRepo(repo, branch, seedFolder string, logLevel int) (err error) {
 	return
 }
 
+func recursiveRepo(repo, branch, seedFolder string, level int) (err error) {
+	if strings.Contains(repo, "goseed.io/") {
+		if branch == "master" {
+			branch = "latest"
+		}
+		err = getBySeed(repo, branch, seedFolder)
+	} else {
+		getRepo(repo, branch, seedFolder, level)
+	}
+
+	packages, err := listDependencies(repo)
+	if err != nil {
+		return
+	}
+	for _, p := range packages {
+		if p != "" {
+			if strings.Contains(p, "goseed.io/") {
+				if branch == "master" {
+					branch = "latest"
+				}
+				err = recursiveRepo(p, branch, seedFolder, level+1)
+			} else {
+				err = recursiveRepo(p, "master", seedFolder, level+1)
+			}
+		}
+	}
+	return
+}
+
 func listDependencies(p string) (packages []string, err error) {
 	args := []string{"list", "-f", `'{{ join .Imports "\n" }}'`}
 	if p != "" {
